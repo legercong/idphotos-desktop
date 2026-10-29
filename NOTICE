@@ -1,0 +1,42 @@
+IDPhotos 桌面增强版（去阴影 / 去反光 AI 修图）
+Copyright (c) 2026 congcong (https://github.com/legercong)
+
+================================================================================
+上游项目 / Upstream Work
+================================================================================
+
+本仓库（分发件）基于 HivisionIDPhotos 项目修改而成：
+
+  HivisionIDPhotos
+  Copyright (c) Zeyi Lin / Hivision 团队
+  项目地址: https://github.com/Zeyi-Lin/HivisionIDPhotos
+  许可证: Apache License, Version 2.0
+
+本仓库中包含原始 HivisionIDPhotos 许可代码的修改版本。
+This product includes software developed at the HivisionIDPhotos project
+(https://github.com/Zeyi-Lin/HivisionIDPhotos), licensed under the Apache
+License, Version 2.0.
+
+对本仓库所做修改的完整说明见 CHANGELOG.md；许可证全文见 LICENSE。
+The modifications made to this repository are described in CHANGELOG.md;
+the full license text is in LICENSE.
+
+================================================================================
+第三方组件 / Third-Party Components
+================================================================================
+
+以下模型与资源由各自原作者提供，本仓库不随源码分发其权重文件
+（见 .gitignore 中的 *.onnx），使用时请遵循各自的许可条款：
+
+  - MODNet 人像抠图模型 (https://github.com/ZHKKKe/MODNet)
+  - RetinaFace 人脸检测模型 (https://github.com/biubug6/Pytorch_Retinaface)
+  - SegFormer 人脸解析模型 / CelebAMask-HQ 数据集
+    (https://github.com/NVlabs/segformer, https://github.com/switchablenorms/CelebAMask-HQ)
+    注意：CelebAMask-HQ 授权范围限定为"非商业性学术研究"，
+    将该人脸解析权重用于商业服务前请自行确认合规。
+  - LaMa 图像修复模型 (https://github.com/advimman/lama)
+  - 字体"青鸟华光简琥珀"随上游仓库分发，版权归原字体厂商，
+    如需商业发布请替换为可商用字体。
+
+本仓库的修改部分同样以 Apache License, Version 2.0 分发，
+见 LICENSE 文件。
