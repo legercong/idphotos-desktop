@@ -25,29 +25,29 @@
 
 </div>
 
-> ## ⚠️ 关于本仓库（必读）
->
-> 本仓库是 **[HivisionIDPhotos（原 "id photos" 证件照项目）](https://github.com/Zeyi-Lin/HivisionIDPhotos)**
-> 的**修改分发版**，由 [congcong](https://github.com/legercong) 在自用证件照出片流程上改造，
-> 上游同样使用 **Apache-2.0** 许可。版权与许可归属详见 [`NOTICE`](NOTICE)，
-> 相对上游的全部改动清单见 [`CHANGELOG.md`](CHANGELOG.md)。
->
-> 本仓库的主要新增能力：
->
-> | 能力 | 说明 |
-> | --- | --- |
-> | **AI 去阴影** | 针对单侧窗光造成的"阴阳脸"，用人脸解析 + 区域照度增益估计做肤色/颈部范围内的提亮还原，强度 0–15 可调 |
-> | **AI 去反光** | 针对出汗/油光的高光斑，用 LaMa 修复网络重建低频光照，并**只允许减光**，避免把下巴等过渡区提亮成污渍 |
-> | **桌面应用** | `launcher.py` 一键起本地服务 + PyQt5 窗口，无需命令行 |
-> | **普通照片也能裁切** | 无人脸 / 多人脸不再报错，自动降级为画幅裁切；横版照片不再被强塞进竖版框 |
-> | **尺寸与裁切修正** | 四寸修正为 1205×900 px；预览框显示真实比例；默认裁切模式改为"按比例填充" |
->
-> **模型权重（`*.onnx`）不在仓库内**：除上游的抠图/人脸检测权重外，去阴影与去反光还需要
-> 两个人脸修图模型，放置路径与来源见 [docs/beauty_models_CN.md](docs/beauty_models_CN.md)。
-> 出于人物隐私，仓库内**不包含任何真实客户照片**。
->
-> 功能问题请先在 [上游 Issue](https://github.com/Zeyi-Lin/HivisionIDPhotos/issues) 搜索；
-> 本仓库特有的问题欢迎提 [Issue](https://github.com/legercong/idphotos-desktop/issues)。
+## ⚠️ 关于本仓库（必读）
+
+本仓库是 **[HivisionIDPhotos（原 "id photos" 证件照项目）](https://github.com/Zeyi-Lin/HivisionIDPhotos)**
+的**修改分发版**，由 [congcong](https://github.com/legercong) 在自用证件照出片流程上改造，
+上游同样使用 **Apache-2.0** 许可。版权与许可归属详见 [`NOTICE`](NOTICE)，
+相对上游的全部改动清单见 [`CHANGELOG.md`](CHANGELOG.md)。
+
+本仓库的主要新增能力：
+
+| 能力 | 说明 |
+| --- | --- |
+| **AI 去阴影** | 针对单侧窗光造成的"阴阳脸"，用人脸解析 + 区域照度增益估计做肤色/颈部范围内的提亮还原，强度 0–15 可调 |
+| **AI 去反光** | 针对出汗/油光的高光斑，用 LaMa 修复网络重建低频光照，并**只允许减光**，避免把下巴等过渡区提亮成污渍 |
+| **桌面应用** | `launcher.py` 一键起本地服务 + PyQt5 窗口，无需命令行 |
+| **普通照片也能裁切** | 无人脸 / 多人脸不再报错，自动降级为画幅裁切；横版照片不再被强塞进竖版框 |
+| **尺寸与裁切修正** | 四寸修正为 1205×900 px；预览框显示真实比例；默认裁切模式改为"按比例填充" |
+
+**模型权重（`*.onnx`）不在仓库内**：除上游的抠图/人脸检测权重外，去阴影与去反光还需要
+两个人脸修图模型，放置路径与来源见 [docs/beauty_models_CN.md](docs/beauty_models_CN.md)。
+出于人物隐私，仓库内**不包含任何真实客户照片**。
+
+功能问题请先在 [上游 Issue](https://github.com/Zeyi-Lin/HivisionIDPhotos/issues) 搜索；
+本仓库特有的问题欢迎提 [Issue](https://github.com/legercong/idphotos-desktop/issues)。
 
 <br>
 
