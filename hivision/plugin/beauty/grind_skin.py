@@ -1,7 +1,6 @@
 # Required Libraries
 import cv2
 import numpy as np
-import gradio as gr
 
 
 def annotate_image(image, grind_degree, detail_degree, strength):
@@ -84,33 +83,37 @@ def process_image(input_img, grind_degree, detail_degree, strength):
     return combined_img_rgb
 
 
-with gr.Blocks(title="Skin Grinding") as iface:
-    gr.Markdown("## Skin Grinding Application")
-
-    with gr.Row():
-        image_input = gr.Image(type="numpy", label="Input Image")
-        image_output = gr.Image(label="Output Image")
-
-    grind_degree_slider = gr.Slider(
-        minimum=1, maximum=10, value=3, step=1, label="Grind Degree"
-    )
-    detail_degree_slider = gr.Slider(
-        minimum=1, maximum=10, value=1, step=1, label="Detail Degree"
-    )
-    strength_slider = gr.Slider(
-        minimum=0, maximum=10, value=9, step=1, label="Strength"
-    )
-
-    gr.Button("Process Image").click(
-        fn=process_image,
-        inputs=[
-            image_input,
-            grind_degree_slider,
-            detail_degree_slider,
-            strength_slider,
-        ],
-        outputs=image_output,
-    )
-
 if __name__ == "__main__":
+    # 这一段只是本文件自带的调试界面。放在模块级会让 import 本文件时就把 gradio
+    # 拉起来并构建一遍 Blocks（约 1.4 秒），而证件照流程根本不会用到它。
+    import gradio as gr
+
+    with gr.Blocks(title="Skin Grinding") as iface:
+        gr.Markdown("## Skin Grinding Application")
+
+        with gr.Row():
+            image_input = gr.Image(type="numpy", label="Input Image")
+            image_output = gr.Image(label="Output Image")
+
+        grind_degree_slider = gr.Slider(
+            minimum=1, maximum=10, value=3, step=1, label="Grind Degree"
+        )
+        detail_degree_slider = gr.Slider(
+            minimum=1, maximum=10, value=1, step=1, label="Detail Degree"
+        )
+        strength_slider = gr.Slider(
+            minimum=0, maximum=10, value=9, step=1, label="Strength"
+        )
+
+        gr.Button("Process Image").click(
+            fn=process_image,
+            inputs=[
+                image_input,
+                grind_degree_slider,
+                detail_degree_slider,
+                strength_slider,
+            ],
+            outputs=image_output,
+        )
+
     iface.launch()

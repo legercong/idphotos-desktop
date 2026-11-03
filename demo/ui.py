@@ -10,6 +10,26 @@ from demo.locales import LOCALES
 from demo.processor import IDPhotoProcessor
 
 
+def warm_retouch_models(shadow_value, specular_value):
+    """
+    后台热身修图模型，只在用户真的动了去阴影/去反光滑杆时才被叫到。
+
+    分割模型（85MB）要两三秒、修复网络 LaMa（198MB）要十四秒，这段时间几乎不放 GIL，
+    搁在启动或导入路径上会把打开应用变成十几秒。所以谁用哪个热哪个：去阴影只要分割，
+    去反光两个都要。没热好就点生成也不会出错，会话自己在锁上等建完。
+    """
+    if (shadow_value or 0) <= 0 and (specular_value or 0) <= 0:
+        return
+    try:
+        from hivision.plugin.beauty import face_parsing, lama_inpaint
+
+        face_parsing.prewarm()
+        if (specular_value or 0) > 0:
+            lama_inpaint.prewarm()
+    except Exception as error:
+        print(f"[修图] 模型预热失败，改为按需加载：{error}")
+
+
 def get_printers():
     try:
         import win32print
@@ -434,6 +454,19 @@ def create_ui(
                             step=1,
                             interactive=True,
                         )
+
+                    # 滑杆一动就在后台把对应的模型读进内存，等用户选好图点生成时
+                    # 通常已经热好了；不用修图的话这两个模型整个会话都不会被加载。
+                    shadow_option.change(
+                        fn=warm_retouch_models,
+                        inputs=[shadow_option, specular_option],
+                        outputs=None,
+                    )
+                    specular_option.change(
+                        fn=warm_retouch_models,
+                        inputs=[shadow_option, specular_option],
+                        outputs=None,
+                    )
 
                     with gr.Row():
                         # 亮度组件

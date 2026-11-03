@@ -43,8 +43,10 @@ import numpy as np
 
 from hivision.plugin.beauty import face_parsing, lama_inpaint
 
-# 二十万吨的权重从磁盘解出来要十几秒，别赶在用户点生成的时候才付这个钱
-lama_inpaint.prewarm()
+# LaMa 的会话构建要 14 秒且几乎不放 GIL，绝不能在 import 期预热——那会把整个应用
+# 的启动时间从 2.5 秒拖到 15 秒以上。这两个模型只在去阴影/去反光用得到，改由界面在
+# 用户推动对应滑杆时后台热身（见 demo/ui.py 的 warm_retouch_models）；
+# 真到了要用的时候还没热好，inpaint()/parse_face() 自己会等（见各自的 _get_session）。
 
 _LUMA_W = np.array([0.114, 0.587, 0.299], np.float32)
 WORK_SIDE = 560  # 检测工作网格的短边上限

@@ -14,6 +14,7 @@
 """
 
 import os
+import threading
 
 import cv2
 import numpy as np
@@ -56,29 +57,49 @@ _STD = np.array([0.229, 0.224, 0.225], np.float32)
 _NET_SIZE = 512
 
 _session = None
-_load_tried = False
+_unusable = False
+_building = False
+# 构建会话要两三秒且几乎不放 GIL，所以只在后台线程里做一次；正构建时来的调用会在这把
+# 锁上等它建完，而不是拿到半成品退回颜色判据——那样同一张图会两次出片结果不一样。
+_lock = threading.Lock()
 
 
 def _get_session():
-    global _session, _load_tried
-    if _load_tried:
+    global _session, _unusable
+    if _session is not None or _unusable:
         return _session
-    _load_tried = True
-    if not os.path.exists(WEIGHTS_PATH):
-        print("[face_parsing] 未找到权重 %s，修图退回颜色判据" % WEIGHTS_PATH)
-        return None
-    try:
-        import onnxruntime
+    with _lock:
+        if _session is not None or _unusable:
+            return _session
+        if not os.path.exists(WEIGHTS_PATH):
+            print("[face_parsing] 未找到权重 %s，修图退回颜色判据" % WEIGHTS_PATH)
+            _unusable = True
+            return None
+        try:
+            import onnxruntime
 
-        options = onnxruntime.SessionOptions()
-        options.intra_op_num_threads = max(1, min(4, os.cpu_count() or 2))
-        _session = onnxruntime.InferenceSession(
-            WEIGHTS_PATH, options, providers=["CPUExecutionProvider"]
-        )
-    except Exception as error:  # pragma: no cover - 取决于运行环境
-        print("[face_parsing] 模型加载失败，修图退回颜色判据: %s" % error)
-        _session = None
+            options = onnxruntime.SessionOptions()
+            options.intra_op_num_threads = max(1, min(4, os.cpu_count() or 2))
+            _session = onnxruntime.InferenceSession(
+                WEIGHTS_PATH, options, providers=["CPUExecutionProvider"]
+            )
+        except Exception as error:  # pragma: no cover - 取决于运行环境
+            print("[face_parsing] 模型加载失败，修图退回颜色判据: %s" % error)
+            _session = None
+            _unusable = True
     return _session
+
+
+def prewarm():
+    """后台把会话建起来。修图模型只在去阴影/去反光用得到，不该让它出现在启动关键路径上。"""
+    global _building
+    if _session is not None or _unusable:
+        return
+    with _lock:
+        if _building or _session is not None:
+            return
+        _building = True
+    threading.Thread(target=_get_session, daemon=True).start()
 
 
 def parse_face(image_bgr, box=None):

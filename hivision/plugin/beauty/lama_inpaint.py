@@ -15,6 +15,7 @@ LaMa 是在大量真实图像上训练出来的修复网络，它填进去的是
 """
 
 import os
+import threading
 
 import cv2
 import numpy as np
@@ -29,6 +30,8 @@ WEIGHTS_PATH = os.path.join(
 
 _session = None
 _unusable = False
+_building = False
+_lock = threading.Lock()
 
 
 def available():
@@ -37,25 +40,34 @@ def available():
 
 
 def _get_session():
+    """
+    取会话，没有就建。建一次要 14 秒且几乎不放 GIL，所以必须防止预热线程和
+    用户第一次点生成同时各建一份（那样是两份 208MB 内存 + 两倍的等待）。
+    """
     global _session, _unusable
     if _session is not None or _unusable:
         return _session
     if not available():
         _unusable = True
         return None
-    try:
-        import onnxruntime as ort
+    with _lock:
+        if _session is not None or _unusable:
+            return _session
+        try:
+            import onnxruntime as ort
 
-        options = ort.SessionOptions()
-        # BASIC 与 ALL 的推理速度实测一样，但省掉三秒初始化
-        options.graph_optimization_level = ort.GraphOptimizationLevel.ORT_ENABLE_BASIC
-        _session = ort.InferenceSession(
-            WEIGHTS_PATH, options, providers=["CPUExecutionProvider"]
-        )
-    except Exception as error:  # 权重损坏 / 缺依赖：安静退回手写算法，不要让修图整步失败
-        print(f"[retouch] LaMa 模型加载失败，改用内置算法：{error}")
-        _session = None
-        _unusable = True
+            options = ort.SessionOptions()
+            # BASIC 与 ALL 的推理速度实测一样，但省掉三秒初始化
+            options.graph_optimization_level = (
+                ort.GraphOptimizationLevel.ORT_ENABLE_BASIC
+            )
+            _session = ort.InferenceSession(
+                WEIGHTS_PATH, options, providers=["CPUExecutionProvider"]
+            )
+        except Exception as error:  # 权重损坏 / 缺依赖：安静退回手写算法，不要让修图整步失败
+            print(f"[retouch] LaMa 模型加载失败，改用内置算法：{error}")
+            _session = None
+            _unusable = True
     return _session
 
 
@@ -63,13 +75,18 @@ def prewarm():
     """
     在后台线程里先把模型读进内存。
 
-    208MB 的权重从磁盘解出来要十几秒，赶在用户点生成的时候才加载，第一张照片会莫名其妙
-    多等这么久。程序启动时机器是空的，这时候付掉。
+    208MB 的权重解出来要 14 秒，赶在用户点生成的时候才加载，第一张照片会莫名其妙
+    多等这么久。但也不能在 import 期就开这个线程：它几乎不放 GIL，会把启动卡成串行，
+    所以由界面在用户推动去反光强度滑杆时才调——不用修图的启动完全
+    不必为它付出这十几秒。
     """
-    if not available():
+    global _building
+    if not available() or _session is not None or _unusable:
         return
-    import threading
-
+    with _lock:
+        if _building or _session is not None:
+            return
+        _building = True
     threading.Thread(target=_get_session, daemon=True).start()
 
 

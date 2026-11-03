@@ -21,6 +21,11 @@ root_dir = os.path.dirname(os.path.abspath(__file__))
 if root_dir not in sys.path:
     sys.path.insert(0, root_dir)
 
+# Gradio 导入时会向 huggingface.co 发一条遥测请求。这台机器上该域名连不上，连接会一直
+# 挂到超时，白等十几秒。启动路径里先把遥测关掉。
+os.environ.setdefault("GRADIO_ANALYTICS_ENABLED", "False")
+os.environ.setdefault("HF_HUB_DISABLE_TELEMETRY", "1")
+
 # 全局变量
 server_ready = threading.Event()
 server_port = None
